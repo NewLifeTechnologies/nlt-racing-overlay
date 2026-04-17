@@ -5,70 +5,88 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StandingDTO {
 
-    private String driverName;
     private boolean player;
-    private int position;
-    private String vehicleName;
     private double bestLapTime;
-    private double lastLapTime;
     private double fuelFraction;
+    private double lastLapTime;
+    private double veFraction;
+    private int position;
+    private String carId;
+    private String driverName;
+    private String vehicleName;
 
     public StandingDTO() {
     }
 
-    public String getDriverName() {
-        return driverName;
-    }
+	public boolean isPlayer() {
+		return player;
+	}
 
-    public void setDriverName(String driverName) {
-        this.driverName = driverName;
-    }
+	public void setPlayer(boolean player) {
+		this.player = player;
+	}
 
-    public boolean isPlayer() {
-        return player;
-    }
+	public double getBestLapTime() {
+		return bestLapTime;
+	}
 
-    public void setPlayer(boolean player) {
-        this.player = player;
-    }
+	public void setBestLapTime(double bestLapTime) {
+		this.bestLapTime = bestLapTime;
+	}
 
-    public int getPosition() {
-        return position;
-    }
+	public double getFuelFraction() {
+		return fuelFraction;
+	}
 
-    public void setPosition(int position) {
-        this.position = position;
-    }
+	public void setFuelFraction(double fuelFraction) {
+		this.fuelFraction = fuelFraction;
+	}
 
-    public String getVehicleName() {
-        return vehicleName;
-    }
+	public double getLastLapTime() {
+		return lastLapTime;
+	}
 
-    public void setVehicleName(String vehicleName) {
-        this.vehicleName = vehicleName;
-    }
+	public void setLastLapTime(double lastLapTime) {
+		this.lastLapTime = lastLapTime;
+	}
+	
+	public double getVeFraction() {
+	    return veFraction;
+	}
 
-    public double getBestLapTime() {
-        return bestLapTime;
-    }
+	public void setVeFraction(double veFraction) {
+	    this.veFraction = veFraction;
+	}
 
-    public void setBestLapTime(double bestLapTime) {
-        this.bestLapTime = bestLapTime;
-    }
+	public int getPosition() {
+		return position;
+	}
 
-    public double getLastLapTime() {
-        return lastLapTime;
-    }
+	public void setPosition(int position) {
+		this.position = position;
+	}
 
-    public void setLastLapTime(double lastLapTime) {
-        this.lastLapTime = lastLapTime;
-    }
+	public String getCarId() {
+		return carId;
+	}
 
-    public double getFuelFraction() {
-        return fuelFraction;
-    }
+	public void setCarId(String carId) {
+		this.carId = carId;
+	}
 
-    public void setFuelFraction(double fuelFraction) {
-        this.fuelFraction = fuelFraction;
-    }
+	public String getDriverName() {
+		return driverName;
+	}
+
+	public void setDriverName(String driverName) {
+		this.driverName = driverName;
+	}
+
+	public String getVehicleName() {
+		return vehicleName;
+	}
+
+	public void setVehicleName(String vehicleName) {
+		this.vehicleName = vehicleName;
+	}
 }

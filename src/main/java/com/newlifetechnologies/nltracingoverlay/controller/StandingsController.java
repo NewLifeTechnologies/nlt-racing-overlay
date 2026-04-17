@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.newlifetechnologies.nltracingoverlay.dto.CarDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.OverlayDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.StandingDTO;
 import com.newlifetechnologies.nltracingoverlay.service.LmuApiService;
@@ -43,6 +44,17 @@ public class StandingsController {
         return lmuApiService.buildOverlay(
                 lmuApiService.getStandingByName()
         );
+    }
+    
+    @GetMapping("/car/player")
+    public CarDTO getPlayerCar() {
+        StandingDTO standing = lmuApiService.getStandingByName();
+
+        if (standing == null) {
+            return null;
+        }
+
+        return lmuApiService.getCarById(standing.getCarId());
     }
     
 }

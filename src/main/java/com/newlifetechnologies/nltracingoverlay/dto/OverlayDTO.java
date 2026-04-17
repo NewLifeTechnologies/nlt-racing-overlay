@@ -4,10 +4,14 @@ public class OverlayDTO {
 
     private String driverName;
     private int position;
+    private String seriesName;
+    private String carClass;
     private String vehicleName;
     private String bestLapTime;
     private String lastLapTime;
-    private int fuelPercent;
+    private double fuelPercent;
+    private double virtualEnergyPercent;
+    private double fuelLiters;
 
     public OverlayDTO() {
     }
@@ -28,7 +32,23 @@ public class OverlayDTO {
         this.position = position;
     }
 
-    public String getVehicleName() {
+    public String getSeriesName() {
+		return seriesName;
+	}
+
+	public void setSeriesName(String seriesName) {
+		this.seriesName = seriesName;
+	}
+
+	public String getCarClass() {
+		return carClass;
+	}
+
+	public void setCarClass(String carClass) {
+		this.carClass = carClass;
+	}
+
+	public String getVehicleName() {
         return vehicleName;
     }
 
@@ -52,11 +72,27 @@ public class OverlayDTO {
         this.lastLapTime = lastLapTime;
     }
 
-    public int getFuelPercent() {
+    public double getFuelPercent() {
         return fuelPercent;
     }
 
-    public void setFuelPercent(int fuelPercent) {
+    public void setFuelPercent(double fuelPercent) {
         this.fuelPercent = fuelPercent;
+    }
+    
+    public double getVirtualEnergyPercent() {
+        return virtualEnergyPercent;
+    }
+
+    public void setVirtualEnergyPercent(double virtualEnergyPercent) {
+        this.virtualEnergyPercent = virtualEnergyPercent;
+    }
+
+    public double getFuelLiters() {
+        return fuelLiters;
+    }
+
+    public void setFuelLiters(double fuelLiters) {
+        this.fuelLiters = fuelLiters;
     }
 }
