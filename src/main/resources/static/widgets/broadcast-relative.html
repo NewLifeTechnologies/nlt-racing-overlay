@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>NLT Broadcast Relative</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: transparent;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        .relative-widget {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .relative-card {
+            background: rgba(0, 0, 0, 0.78);
+            border: 2px solid #d9b23f;
+            border-radius: 10px;
+            box-shadow: 0 0 18px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+        }
+
+        .side-card {
+            width: 500px;
+            height: 58px;
+
+            display: grid;
+            grid-template-columns: 42px 68px 1fr 92px 110px;
+            align-items: center;
+        }
+
+        .center-card {
+            width: 180px;
+            height: 110px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            background: rgba(217, 178, 63, 0.95);
+            color: #111;
+        }
+
+        .cell {
+            padding: 0 8px;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .position {
+            font-weight: bold;
+            font-size: 18px;
+            color: #A7E214;
+            text-align: center;
+        }
+
+        .energy {
+            color: #d9b23f;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .driver {
+            font-weight: bold;
+        }
+
+        .interval {
+            font-weight: bold;
+            font-size: 18px;
+            color: #A7E214;
+            text-align: center;
+        }
+
+        .class {
+            color: #d9b23f;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .center-driver {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            padding: 0 8px;
+            margin-bottom: 8px;
+
+            max-width: 135px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .center-info {
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .empty {
+            opacity: 0.35;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="relative-widget">
+
+        <div class="relative-card side-card" id="aheadCard">
+            <span class="cell position" id="aheadPosition">-</span>
+            <span class="cell energy" id="aheadEnergy">-</span>
+            <span class="cell driver" id="aheadDriver">-</span>
+            <span class="cell interval" id="aheadInterval">-</span>
+            <span class="cell class" id="aheadClass">-</span>
+        </div>
+
+        <div class="relative-card center-card" id="focusedCard">
+            <div class="center-driver" id="focusedDriver">-</div>
+            <div class="center-info">
+                P<span id="focusedPosition">-</span><br>
+                <span id="focusedEnergy">-</span><br>
+                <span id="focusedClass">-</span>
+            </div>
+        </div>
+
+        <div class="relative-card side-card" id="behindCard">
+            <span class="cell position" id="behindPosition">-</span>
+            <span class="cell energy" id="behindEnergy">-</span>
+            <span class="cell driver" id="behindDriver">-</span>
+            <span class="cell interval" id="behindInterval">-</span>
+            <span class="cell class" id="behindClass">-</span>
+        </div>
+
+    </div>
+
+    <script>
+        async function loadRelative() {
+            try {
+                const response = await fetch('/overlay/broadcast/relative');
+
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar relative');
+                }
+
+                const data = await response.json();
+
+                updateSideCar('ahead', data.ahead);
+                updateFocusedCar(data.focused);
+                updateSideCar('behind', data.behind);
+
+            } catch (error) {
+                console.error('Falha ao atualizar relative:', error);
+            }
+        }
+
+        function updateSideCar(prefix, car) {
+            const card = document.getElementById(prefix + 'Card');
+
+            if (!car) {
+                card.classList.add('empty');
+
+                document.getElementById(prefix + 'Position').textContent = '-';
+                document.getElementById(prefix + 'Energy').textContent = '-';
+                document.getElementById(prefix + 'Driver').textContent = '-';
+                document.getElementById(prefix + 'Interval').textContent = '-';
+                document.getElementById(prefix + 'Class').textContent = '-';
+                return;
+            }
+
+            card.classList.remove('empty');
+
+            document.getElementById(prefix + 'Position').textContent = 'P' + car.position;
+            document.getElementById(prefix + 'Energy').textContent = formatPercent(car.virtualEnergyPercent);
+            document.getElementById(prefix + 'Driver').textContent = car.driverName ?? '-';
+            document.getElementById(prefix + 'Interval').textContent = car.interval ?? '-';
+            document.getElementById(prefix + 'Class').textContent = car.carClass ?? '-';
+        }
+
+        function updateFocusedCar(car) {
+            if (!car) {
+                document.getElementById('focusedDriver').textContent = '-';
+                document.getElementById('focusedPosition').textContent = '-';
+                document.getElementById('focusedEnergy').textContent = '-';
+                document.getElementById('focusedClass').textContent = '-';
+                return;
+            }
+
+            document.getElementById('focusedDriver').textContent = car.driverName ?? '-';
+            document.getElementById('focusedPosition').textContent = car.position ?? '-';
+            document.getElementById('focusedEnergy').textContent = formatPercent(car.virtualEnergyPercent);
+            document.getElementById('focusedClass').textContent = car.carClass ?? '-';
+        }
+
+        function formatPercent(value) {
+            if (value === null || value === undefined) {
+                return '-';
+            }
+
+            return Number(value).toFixed(1) + '%';
+        }
+
+        loadRelative();
+        setInterval(loadRelative, 16);
+    </script>
+</body>
+</html>

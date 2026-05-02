@@ -1,7 +1,9 @@
 package com.newlifetechnologies.nltracingoverlay.service;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -9,9 +11,11 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.newlifetechnologies.nltracingoverlay.dto.BroadcastRelativeDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.CarDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.OverlayDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.ProfileDTO;
+import com.newlifetechnologies.nltracingoverlay.dto.RelativeCarDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.StandingDTO;
 import com.newlifetechnologies.nltracingoverlay.formatter.OverlayFormatter;
 
@@ -20,12 +24,13 @@ public class LmuApiService {
 
 	@Value("${lmu.api.base-url}")
 	private String baseUrl;
+	private String lastCarId;
 	private List<CarDTO> carsCache;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final OverlayFormatter overlayFormatter;
     private JsonNode garageDataCache;
-    private String lastCarId;
+    private Map<String, Double> tankCapacityCache = new HashMap<>();
 
     public LmuApiService(OverlayFormatter overlayFormatter) {
         this.overlayFormatter = overlayFormatter;
@@ -35,7 +40,7 @@ public class LmuApiService {
         String endPoint = baseUrl.concat("/rest/profile/");
 
         try {
-            String responseBody = restTemplate.getForObject(endPoint, String.class);
+        	String responseBody = getLmuResponseBody(endPoint);
             return objectMapper.readValue(responseBody, ProfileDTO.class);
         } catch (Exception e) {
             throw new RuntimeException("Erro ao buscar profile do LMU", e);
@@ -51,12 +56,17 @@ public class LmuApiService {
         String endPoint = baseUrl.concat("/rest/watch/standings");
 
         try {
-            String responseBody = restTemplate.getForObject(endPoint, String.class);
+        	String responseBody = getLmuResponseBody(endPoint);
             StandingDTO[] standingsArray = objectMapper.readValue(responseBody, StandingDTO[].class);
             return Arrays.asList(standingsArray);
         } catch (Exception e) {
             throw new RuntimeException("Erro ao buscar standings do LMU", e);
         }
+    }
+    
+    private String getLmuResponseBody(String endPoint) {
+        byte[] responseBytes = restTemplate.getForObject(endPoint, byte[].class);
+        return new String(responseBytes, java.nio.charset.StandardCharsets.UTF_8);
     }
     
     public StandingDTO getStandingByPlayer() {
@@ -98,7 +108,7 @@ public class LmuApiService {
         
         
         double fuelFraction = standing.getFuelFraction();
-        int tankCapacity = getTankCapacity(standing.getCarId());
+        double tankCapacity = getTankCapacity(standing.getCarId());
         double virtualEnergyPercent = Math.round(standing.getVeFraction() * 1000.0)/10.0;
         double fuelLiters = tankCapacity * fuelFraction;
 
@@ -136,6 +146,52 @@ public class LmuApiService {
 
         return overlay;
     }
+
+    private RelativeCarDTO buildRelativeCar(StandingDTO standing, String interval) {
+
+        if (standing == null) {
+            return null;
+        }
+
+        RelativeCarDTO dto = new RelativeCarDTO();
+        CarDTO car = getCarById(standing.getCarId());
+
+        double virtualEnergyPercent = Math.round(standing.getVeFraction() * 1000.0) / 10.0;
+
+        dto.setPosition(standing.getPosition());
+        dto.setVirtualEnergyPercent(virtualEnergyPercent);
+        dto.setDriverName(standing.getDriverName());
+        dto.setInterval(interval);
+        dto.setCarClass(car.getDisplayProperties().getCarClass());
+
+        return dto;
+    }
+    
+    public BroadcastRelativeDTO getBroadcastRelative() {
+
+        StandingDTO focused = getStandingByWatchFocus();
+
+        if (focused == null) {
+            return null;
+        }
+
+        StandingDTO ahead = getStandingAhead(focused);
+        StandingDTO behind = getStandingBehind(focused);
+        BroadcastRelativeDTO dto = new BroadcastRelativeDTO();
+        String intervalAhead = overlayFormatter.formatRelativeInterval(focused.getTimeBehindNext(), true);
+        String intervalBehind = "-";
+
+        if (behind != null) {
+            intervalBehind = overlayFormatter.formatRelativeInterval(behind.getTimeBehindNext(), false);
+        }
+
+        dto.setAhead(buildRelativeCar(ahead, intervalAhead));
+        dto.setFocused(buildRelativeCar(focused, ""));
+        dto.setBehind(buildRelativeCar(behind, intervalBehind));
+
+        return dto;
+    }
+    
     
     public List<CarDTO> getCars() {
         if (carsCache != null) {
@@ -144,7 +200,7 @@ public class LmuApiService {
 
         String endPoint = baseUrl.concat("/rest/race/car");
         try {
-            String responseBody = restTemplate.getForObject(endPoint, String.class);
+        	String responseBody = getLmuResponseBody(endPoint);
             CarDTO[] carsArray = objectMapper.readValue(responseBody, CarDTO[].class);
             carsCache = Arrays.asList(carsArray);
             return carsCache;
@@ -204,24 +260,6 @@ public class LmuApiService {
         return buildOverlay(standing);
     }
     
-    /*
-    public JsonNode getGarageData() {
-        if (garageDataCache != null) {
-            return garageDataCache;
-        }
-
-        String endPoint = baseUrl.concat("/rest/garage/getPlayerGarageData");
-
-        try {
-            String responseBody = restTemplate.getForObject(endPoint, String.class);
-            garageDataCache = objectMapper.readTree(responseBody);
-            return garageDataCache;
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao buscar garage data do LMU", e);
-        }
-    }
-    */
-    
     public JsonNode getGarageData(String currentCarId) {
 
         if (lastCarId == null || !lastCarId.equals(currentCarId)) {
@@ -236,7 +274,7 @@ public class LmuApiService {
         String endPoint = baseUrl.concat("/rest/garage/getPlayerGarageData");
 
         try {
-            String responseBody = restTemplate.getForObject(endPoint, String.class);
+        	String responseBody = getLmuResponseBody(endPoint);
             garageDataCache = objectMapper.readTree(responseBody);
             return garageDataCache;
         } catch (Exception e) {
@@ -244,31 +282,76 @@ public class LmuApiService {
         }
     }
     
-    /*
-    public int getTankCapacity() {
-        JsonNode garageData = getGarageData();
-
-        JsonNode fuelLevelNode = garageData.path("VM_FUEL_LEVEL");
-        JsonNode maxValueNode = fuelLevelNode.path("maxValue");
-
-        if (maxValueNode.isMissingNode() || !maxValueNode.isNumber()) {
-            return 0;
+    public double getTankCapacity(String currentCarId) {
+    	
+        if (tankCapacityCache.containsKey(currentCarId)) {
+            return tankCapacityCache.get(currentCarId);
         }
-
-        return maxValueNode.asInt();
-    }
-    */
-    public int getTankCapacity(String currentCarId) {
         JsonNode garageData = getGarageData(currentCarId);
-
         JsonNode fuelLevelNode = garageData.path("VM_FUEL_LEVEL");
         JsonNode maxValueNode = fuelLevelNode.path("maxValue");
+        JsonNode fuelCapacityNode = garageData.path("VM_FUEL_CAPACITY");
+        JsonNode stringValueNode = fuelLevelNode.path("stringValue");
+        String raw = maxValueNode.asText();
+        String valueOnly = raw.split("L")[0];
+        double fuelValue = Double.parseDouble(maxValueNode.asText()) > Double.parseDouble(valueOnly) ?
+        		Double.parseDouble(maxValueNode.asText()) : Double.parseDouble(valueOnly);
 
         if (maxValueNode.isMissingNode() || !maxValueNode.isNumber()) {
             return 0;
         }
 
-        return maxValueNode.asInt();
+        tankCapacityCache.put(currentCarId, fuelValue);
+        
+        return fuelValue;
+    }
+    
+    public StandingDTO getStandingByWatchFocus() {
+        return getStandings().stream()
+                .filter(s -> s.isHasFocus() || s.isFocus())
+                .findFirst()
+                .orElse(null);
+    }
+    
+    public OverlayDTO getBroadcastSelectedCarOverlay() {
+        StandingDTO standing = getStandingByWatchFocus();
+        return buildOverlay(standing);
+    }
+    
+    private StandingDTO getStandingBehind(StandingDTO focusedStanding) {
+
+        if (focusedStanding == null) {
+            return null;
+        }
+
+        int behindPosition = focusedStanding.getPosition() + 1;
+
+        return getStandings().stream()
+                .filter(s -> s.getPosition() == behindPosition)
+                .findFirst()
+                .orElse(null);
+    }
+    
+    private StandingDTO getStandingAhead(StandingDTO focusedStanding) {
+
+        if (focusedStanding == null) {
+            return null;
+        }
+/*
+ * Aqui posso verificar para não pegar a Posição - 1
+ * pegar a linha do JSON acima da que estou usando 
+ * para tentar montar um relative geral
+ */
+        int aheadPosition = focusedStanding.getPosition() - 1;
+
+        if (aheadPosition < 1) {
+            return null;
+        }
+
+        return getStandings().stream()
+                .filter(s -> s.getPosition() == aheadPosition)
+                .findFirst()
+                .orElse(null);
     }
     
 }

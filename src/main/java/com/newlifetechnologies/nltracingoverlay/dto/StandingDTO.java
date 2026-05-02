@@ -7,14 +7,25 @@ public class StandingDTO {
 
     private boolean player;
     private double bestLapTime;
+    private boolean focus;
     private double fuelFraction;
+    private boolean hasFocus;
     private double lastLapTime;
     private double veFraction;
     private int position;
     private String carId;
     private String driverName;
     private String vehicleName;
+    private double timeBehindNext;
 
+    public double getTimeBehindNext() {
+        return timeBehindNext;
+    }
+
+    public void setTimeBehindNext(double timeBehindNext) {
+        this.timeBehindNext = timeBehindNext;
+    }
+    
     public StandingDTO() {
     }
 
@@ -33,6 +44,14 @@ public class StandingDTO {
 	public void setBestLapTime(double bestLapTime) {
 		this.bestLapTime = bestLapTime;
 	}
+	
+	public boolean isFocus() {
+	    return focus;
+	}
+
+	public void setFocus(boolean focus) {
+	    this.focus = focus;
+	}
 
 	public double getFuelFraction() {
 		return fuelFraction;
@@ -40,6 +59,14 @@ public class StandingDTO {
 
 	public void setFuelFraction(double fuelFraction) {
 		this.fuelFraction = fuelFraction;
+	}
+	
+	public boolean isHasFocus() {
+	    return hasFocus;
+	}
+
+	public void setHasFocus(boolean hasFocus) {
+	    this.hasFocus = hasFocus;
 	}
 
 	public double getLastLapTime() {

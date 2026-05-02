@@ -148,7 +148,7 @@
     <script>
         async function loadOverlay() {
             try {
-                const response = await fetch('/overlay/player');
+                const response = await fetch('/overlay/broadcast/selected-car');
 
                 if (!response.ok) {
                     throw new Error('Erro ao buscar dados');
@@ -179,9 +179,9 @@
                 const fuelEl = document.getElementById('fuelLiters');
                 fuelEl.className = 'value';
 
-                if (data.fuelLiters <= 20) {
+                if (data.fuelLiters <= 10) {
                     fuelEl.classList.add('danger');
-                } else if (data.fuelLiters <= 50) {
+                } else if (data.fuelLiters <= 30) {
                     fuelEl.classList.add('warning');
                 } else {
                     fuelEl.classList.add('good');
@@ -190,9 +190,9 @@
                 const evEl = document.getElementById('virtualEnergyPercent');
                 evEl.className = 'value';
 
-                if (data.virtualEnergyPercent <= 20) {
+                if (data.virtualEnergyPercent <= 10.0) {
                     evEl.classList.add('danger');
-                } else if (data.virtualEnergyPercent <= 50) {
+                } else if (data.virtualEnergyPercent <= 30.0) {
                     evEl.classList.add('warning');
                 } else {
                     evEl.classList.add('good');
@@ -204,7 +204,7 @@
         }
 
         loadOverlay();
-        setInterval(loadOverlay, 2000);
+        setInterval(loadOverlay, 1000);
     </script>
 </body>
 </html>
