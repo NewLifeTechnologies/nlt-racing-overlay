@@ -58,14 +58,17 @@ body {
     height: 32px;
 }
 
+.value.good,
 .good {
     color: var(--nlt-green);
 }
 
+.value.warning,
 .warning {
     color: var(--nlt-gold);
 }
 
+.value.danger,
 .danger {
     color: #ff4d4d;
 }

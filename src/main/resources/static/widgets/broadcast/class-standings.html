@@ -2,18 +2,11 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/nlt-overlay.css">
+    
     <title>Broadcast Class Standings</title>
 
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: transparent;
-            font-family: Arial, Helvetica, sans-serif;
-            color: #ffffff;
-            overflow: hidden;
-        }
-
 		.widget {
 		    width: 620px;
 		    background: rgba(0, 0, 0, 0.75);
@@ -23,19 +16,19 @@
 		    box-shadow: 0 0 20px rgba(0, 0, 0, 0.45);
 		}
         
-.columns {
-    display: grid;
-    grid-template-columns: 52px 64px 1fr 82px 90px 90px;
-    padding: 0 10px;
-    min-height: 24px;
-    align-items: center;
-    font-size: 11px;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: #d9b23f;
-    background: rgba(0, 0, 0, 0.35);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
+		.columns {
+		    display: grid;
+		    grid-template-columns: 52px 64px 1fr 82px 90px 90px;
+		    padding: 0 10px;
+		    min-height: 24px;
+		    align-items: center;
+		    font-size: 11px;
+		    font-weight: bold;
+		    text-transform: uppercase;
+		    color: #d9b23f;
+		    background: rgba(0, 0, 0, 0.35);
+		    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		}
 
 		.columns .col {
     		text-align: right;
@@ -50,23 +43,23 @@
 		    text-align: left;
 		}
 
-.header {
-    background: #d9b23f;
-    color: #111;
-    font-size: 18px;
-    font-weight: bold;
-    padding: 8px 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.title {
-    font-size: 18px;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: #111;
-}
+		.header {
+		    background: #d9b23f;
+		    color: #111;
+		    font-size: 18px;
+		    font-weight: bold;
+		    padding: 8px 12px;
+		    display: flex;
+		    justify-content: space-between;
+		    align-items: center;
+		}
+		
+		.title {
+		    font-size: 18px;
+		    font-weight: bold;
+		    text-transform: uppercase;
+		    color: #111;
+		}
 
         .class-name {
             font-size: 16px;
@@ -128,37 +121,6 @@
     		font-weight: bold;
 		}
 
-		.class-highlight {
-		    display: inline-block;
-    		padding: 4px 8px;
-    		border-radius: 6px;
-    		background: rgba(0, 0, 0, 0.25);
-    		border: 1px solid rgba(217, 178, 63, 0.4);
-    		font-size: 14px;
-    		font-weight: bold;
-    		text-align: center;
-		}
-
-		.hypercar {
-    		background: rgba(189, 0, 64, 0.85);
-    		color: #fff;
-		}
-
-		.lmp2 {
-    		background: rgba(0, 109, 178, 0.85);
-    		color: #fff;
-		}
-
-		.lmp3 {
-    		background: rgba(94, 16, 134, 0.85);
-    		color: #fff;
-		}
-
-		.gt3 {
-    		background: rgba(40, 190, 58, 0.85);
-    		color: #fff;
-		}
-
         .empty {
             padding: 16px;
             font-size: 15px;
@@ -169,8 +131,8 @@
 
 <body>
 
-<div class="widget">
-    <div class="header">
+<div class="widget nlt-card">
+    <div class="header nlt-header">
         <div class="title">Class Standings</div>
         <div class="class">
 		    <span id="className" class="class-highlight">--</span>

@@ -2,29 +2,11 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/nlt-overlay.css">
+    
     <title>NLT Broadcast Relative</title>
 
     <style>
-        :root {
-            --nlt-gold: #d9b23f;
-            --nlt-gray: #5e5d5d;
-            --nlt-green: #A7E214;
-            --card-bg: rgba(0, 0, 0, 0.78);
-            --shadow: 0 0 18px rgba(0, 0, 0, 0.45);
-            --border-gold: 2px solid var(--nlt-gold);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            background: transparent;
-            font-family: Arial, sans-serif;
-            color: white;
-        }
-
         .relative-widget {
             position: absolute;
             bottom: 20px;
@@ -35,10 +17,10 @@
         }
 
         .relative-card {
-            background: var(--card-bg);
-            border: var(--border-gold);
+            background: var(--overlay-card-bg);
+            border: var(--overlay-border);
             border-radius: 10px;
-            box-shadow: var(--shadow);
+            box-shadow: var(--overlay-shadow-soft);
             overflow: hidden;
         }
 
@@ -95,17 +77,6 @@
 
         .class {
             color: var(--nlt-gold);
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .class-highlight {
-            display: inline-block;
-            padding: 8px;
-            border-radius: 6px;
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(217, 178, 63, 0.4);
-            font-size: 14px;
             font-weight: bold;
             text-align: center;
         }
@@ -218,26 +189,6 @@
             text-shadow: none;
         }
 
-        .hypercar {
-            background: rgba(189, 0, 64, 0.85);
-            color: #fff;
-        }
-
-        .lmp2 {
-            background: rgba(0, 109, 178, 0.85);
-            color: #fff;
-        }
-
-        .lmp3 {
-            background: rgba(94, 16, 134, 0.85);
-            color: #fff;
-        }
-
-        .gt3 {
-            background: rgba(40, 190, 58, 0.85);
-            color: #fff;
-        }
-
         .empty {
             opacity: 0.35;
         }
@@ -246,7 +197,7 @@
 
 <body>
     <div class="relative-widget">
-        <div class="relative-card side-card ahead-card" id="aheadCard">
+        <div class="relative-card nlt-card-soft side-card ahead-card" id="aheadCard">
             <span class="cell position" id="aheadPosition">-</span>
 
             <div class="cell energy-wrapper">
@@ -265,7 +216,7 @@
             </span>
         </div>
 
-        <div class="relative-card center-card" id="focusedCard">
+        <div class="relative-card nlt-card-soft center-card" id="focusedCard">
             <div class="center-driver" id="focusedDriver">-</div>
 
             <div class="center-middle-row">
@@ -286,7 +237,7 @@
             </div>
         </div>
 
-        <div class="relative-card side-card behind-card" id="behindCard">
+        <div class="relative-card nlt-card-soft side-card behind-card" id="behindCard">
             <span class="cell class">
                 <span class="class-highlight" id="behindClass">-</span>
             </span>
