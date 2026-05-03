@@ -14,23 +14,28 @@
             overflow: hidden;
         }
 
-        .widget {
-            width: 520px;
-            background: rgba(10, 10, 10, 0.88);
-            border-left: 6px solid #d9b23f;
-            box-shadow: 0 0 14px rgba(0, 0, 0, 0.65);
-        }
-        
-		.columns {
-		    display: grid;
-    		grid-template-columns: 52px 64px 1fr 82px 90px 90px;
-    		padding: 0px 10px;
-    		font-size: 11px;
-    		text-transform: uppercase;
-    		color: #999999;
-    		background: rgba(0, 0, 0, 0.35);
-    		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		.widget {
+		    width: 620px;
+		    background: rgba(0, 0, 0, 0.75);
+		    border: 2px solid #d9b23f;
+		    border-radius: 10px;
+		    overflow: hidden;
+		    box-shadow: 0 0 20px rgba(0, 0, 0, 0.45);
 		}
+        
+.columns {
+    display: grid;
+    grid-template-columns: 52px 64px 1fr 82px 90px 90px;
+    padding: 0 10px;
+    min-height: 24px;
+    align-items: center;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #d9b23f;
+    background: rgba(0, 0, 0, 0.35);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
 
 		.columns .col {
     		text-align: right;
@@ -45,21 +50,23 @@
 		    text-align: left;
 		}
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #111111;
-            padding: 10px 14px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-        }
+.header {
+    background: #d9b23f;
+    color: #111;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-        .title {
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #d9b23f;
-        }
+.title {
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #111;
+}
 
         .class-name {
             font-size: 16px;
@@ -83,7 +90,7 @@
 
         .row.player,
         .row.focus {
-            background: rgba(217, 178, 63, 0.22);
+    		background: rgba(217, 178, 63, 0.16);
         }
 
         .pos {
