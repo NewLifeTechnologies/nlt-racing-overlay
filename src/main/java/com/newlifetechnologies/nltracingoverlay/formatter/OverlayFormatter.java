@@ -15,7 +15,7 @@ public class OverlayFormatter {
         int minutes = (int) (timeInSeconds / 60);
         double seconds = timeInSeconds % 60;
 
-        return String.format("%d:%06.3f", minutes, seconds);
+        return String.format(Locale.US, "%d:%06.3f", minutes, seconds);
     }
     
     public String formatRelativeInterval(double seconds, boolean ahead) {

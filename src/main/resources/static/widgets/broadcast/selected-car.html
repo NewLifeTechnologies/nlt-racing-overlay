@@ -148,7 +148,7 @@
     <script>
         async function loadOverlay() {
             try {
-                const response = await fetch('/overlay/broadcast/selected-car');
+                const response = await fetch('/widgets/broadcast/selected-car');
 
                 if (!response.ok) {
                     throw new Error('Erro ao buscar dados');

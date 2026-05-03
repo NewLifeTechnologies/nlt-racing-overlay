@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Broadcast Class Standings</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .widget {
+            width: 520px;
+            background: rgba(10, 10, 10, 0.88);
+            border-left: 6px solid #d9b23f;
+            box-shadow: 0 0 14px rgba(0, 0, 0, 0.65);
+        }
+        
+		.columns {
+		    display: grid;
+    		grid-template-columns: 52px 64px 1fr 82px 90px 90px;
+    		padding: 0px 10px;
+    		font-size: 11px;
+    		text-transform: uppercase;
+    		color: #999999;
+    		background: rgba(0, 0, 0, 0.35);
+    		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		}
+
+		.columns .col {
+    		text-align: right;
+		}
+		
+		.columns .col-pos,
+		.columns .col-number {
+		    text-align: left;
+		}
+
+		.columns .driver {
+		    text-align: left;
+		}
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #111111;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #d9b23f;
+        }
+
+        .class-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .rows {
+            width: 100%;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 52px 64px 1fr 82px 90px 90px;
+            align-items: center;
+            min-height: 38px;
+            padding: 0px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-sizing: border-box;
+        }
+
+        .row.player,
+        .row.focus {
+            background: rgba(217, 178, 63, 0.22);
+        }
+
+        .pos {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d9b23f;
+        }
+
+        .number {
+            font-size: 15px;
+            color: #cccccc;
+        }
+
+        .driver {
+            font-size: 15px;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .gap,
+        .lap {
+            font-size: 14px;
+            text-align: right;
+            color: #ffffff;
+        }
+        
+        .lap.best {
+    		color: #A7E214;
+		}
+		
+		.lap.best-in-class {
+    		color: #ff4df0;
+    		font-weight: bold;
+		}
+
+		.class-highlight {
+		    display: inline-block;
+    		padding: 4px 8px;
+    		border-radius: 6px;
+    		background: rgba(0, 0, 0, 0.25);
+    		border: 1px solid rgba(217, 178, 63, 0.4);
+    		font-size: 14px;
+    		font-weight: bold;
+    		text-align: center;
+		}
+
+		.hypercar {
+    		background: rgba(189, 0, 64, 0.85);
+    		color: #fff;
+		}
+
+		.lmp2 {
+    		background: rgba(0, 109, 178, 0.85);
+    		color: #fff;
+		}
+
+		.lmp3 {
+    		background: rgba(94, 16, 134, 0.85);
+    		color: #fff;
+		}
+
+		.gt3 {
+    		background: rgba(40, 190, 58, 0.85);
+    		color: #fff;
+		}
+
+        .empty {
+            padding: 16px;
+            font-size: 15px;
+            color: #cccccc;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="widget">
+    <div class="header">
+        <div class="title">Class Standings</div>
+        <div class="class">
+		    <span id="className" class="class-highlight">--</span>
+		</div>
+    </div>
+    
+    <div class="columns">
+		<div class="col pos col-pos">P</div>
+		<div class="col number col-number">#</div>
+		<div class="col driver">DRIVER</div>
+		<div class="col gap">GAP</div>
+    	<div class="col lap">LAST</div>
+    	<div class="col lap">BEST</div>
+	</div>
+
+    <div id="rows" class="rows">
+        <div class="empty">Aguardando dados...</div>
+    </div>
+</div>
+
+<script>
+    const CLASS_STANDINGS_ENDPOINT = '/widgets/broadcast/class-standings';
+    const UPDATE_INTERVAL_MS = 1000;
+    const MAX_ROWS = 10;
+    const CLASS_STYLE_NAMES = ['hypercar', 'lmp2', 'lmp3', 'gt3'];
+
+    async function loadClassStandings() {
+        try {
+            const response = await fetch(CLASS_STANDINGS_ENDPOINT);
+
+            if (!response.ok) {
+                throw new Error('Erro HTTP: ' + response.status);
+            }
+
+            const data = await response.json();
+
+            renderClassStandings(data);
+
+        } catch (error) {
+            console.error('Erro ao carregar standings por classe:', error);
+            renderError();
+        }
+    }
+    
+   function updateClass(element, className) {
+        const value = normalizeClassName(className);
+
+        element.textContent = value;
+        applyClassStyle(element, value);
+    }
+
+    function normalizeClassName(value) {
+        if (!value || value === '-' || value.trim() === '') {
+            return '-';
+        }
+
+        const normalized = value.toLowerCase();
+
+        if (normalized === 'hyper') {
+            return 'Hypercar';
+        }
+
+        return value;
+    }
+
+    function applyClassStyle(element, className) {
+        element.classList.remove(...CLASS_STYLE_NAMES);
+
+        if (!className || className === '-') {
+            return;
+        }
+
+        const normalized = className.toLowerCase();
+
+        if (normalized.includes('hyper')) {
+            element.classList.add('hypercar');
+        } else if (normalized.includes('lmp2')) {
+            element.classList.add('lmp2');
+        } else if (normalized.includes('lmp3')) {
+            element.classList.add('lmp3');
+        } else if (normalized.includes('gt3')) {
+            element.classList.add('gt3');
+        }
+    }
+
+    function renderClassStandings(data) {
+        const classNameElement = document.getElementById('className');
+        const rowsElement = document.getElementById('rows');
+
+        rowsElement.innerHTML = '';
+
+        if (!data || !data.standings || data.standings.length === 0) {
+            classNameElement.textContent = '--';
+            rowsElement.innerHTML = '<div class="empty">Sem dados da classe</div>';
+            return;
+        }
+
+        updateClass(classNameElement, data.selectedClass);
+
+        const standings = data.standings.slice(0, MAX_ROWS);
+
+        standings.forEach(car => {
+            const row = document.createElement('div');
+            row.className = 'row';
+
+            if (car.player) {
+                row.classList.add('player');
+            }
+
+            if (car.focus) {
+                row.classList.add('focus');
+            }
+
+            row.innerHTML = `
+                <div class="pos">P${car.classPosition}</div>
+                <div class="number">#${formatValue(car.carNumber)}</div>
+                <div class="driver">${formatValue(car.driverName)}</div>
+                <div class="gap">${formatGap(car)}</div>
+                <div class="lap">${formatValue(car.lastLapTime)}</div>
+                <div class="lap best ${car.bestLapInClass ? 'best-in-class' : ''}">
+                	${formatValue(car.bestLapTime)}
+            	</div>
+            `;
+
+            rowsElement.appendChild(row);
+        });
+    }
+
+    function formatValue(value) {
+        if (value === null || value === undefined || value === '') {
+            return '--';
+        }
+
+        return value;
+    }
+
+    function formatGap(car) {
+        if (!car || car.classPosition === 1) {
+            return 'LEADER';
+        }
+
+        const gap = car.timeBehindClassLeader;
+
+        if (gap === null || gap === undefined || gap < 0) {
+            return '--';
+        }
+
+        return '+' + gap.toFixed(3);
+    }
+
+    function renderError() {
+        document.getElementById('className').textContent = '--';
+        document.getElementById('rows').innerHTML =
+            '<div class="empty">Erro ao carregar dados</div>';
+    }
+
+    loadClassStandings();
+    setInterval(loadClassStandings, UPDATE_INTERVAL_MS);
+</script>
+
+</body>
+</html>
