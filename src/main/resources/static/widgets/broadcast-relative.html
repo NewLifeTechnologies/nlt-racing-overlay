@@ -5,6 +5,19 @@
     <title>NLT Broadcast Relative</title>
 
     <style>
+        :root {
+            --nlt-gold: #d9b23f;
+            --nlt-gray: #5e5d5d;
+            --nlt-green: #A7E214;
+            --card-bg: rgba(0, 0, 0, 0.78);
+            --shadow: 0 0 18px rgba(0, 0, 0, 0.45);
+            --border-gold: 2px solid var(--nlt-gold);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             background: transparent;
@@ -16,138 +29,42 @@
             position: absolute;
             bottom: 20px;
             left: 20px;
-
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
         .relative-card {
-            background: rgba(0, 0, 0, 0.78);
-            border: 2px solid #d9b23f;
+            background: var(--card-bg);
+            border: var(--border-gold);
             border-radius: 10px;
-            box-shadow: 0 0 18px rgba(0, 0, 0, 0.45);
+            box-shadow: var(--shadow);
             overflow: hidden;
+        }
+
+        .side-card {
+            width: 500px;
+            height: 58px;
+            display: grid;
+            align-items: center;
         }
 
         .ahead-card {
-            width: 500px;
-            height: 58px;
-
-            display: grid;
-            grid-template-columns: 42px 68px 1fr 92px 110px;
-            align-items: center;
+            grid-template-columns: 60px 68px 1fr 92px 110px;
         }
-        
+
+        .behind-card {
+            grid-template-columns: 110px 92px 1fr 68px 60px;
+        }
+
         .center-card {
             width: 180px;
             height: 110px;
-
             display: grid;
             grid-template-rows: 24px 1fr 28px;
             align-items: center;
-
             background: rgba(217, 178, 63, 0.95);
             color: #111;
-        }
-
-		.center-position {
-    justify-self: center;
-    font-size: 14px;
-    font-weight: bold;
-		}
-
-		.center-energy-wrapper {
-    		display: flex;
-    		flex-direction: column;
-    		align-items: center;
-    		justify-content: center;
-		}
-
-        .center-driver {
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-
-            max-width: 160px;
-            justify-self: center;
-
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .center-info {
-            display: flex;
-    		flex-direction: column;
-		    align-items: center;
-		    justify-content: center;
-		    gap: 2px;
-		    font-size: 13px;
-		    font-weight: bold;
-		    line-height: 1.1;
-		    text-align: center;
-        }
-        
-.center-middle-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-
-    width: 100%;
-}
-
-.center-logo {
-    max-width: 65px;
-    max-height: 65px;
-    justify-self: center;
-    object-fit: contain;
-}
-
-.center-bottom-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-
-    width: 100%;
-}
-
-.center-card .class-highlight {
-    justify-self: center;
-    padding: 4px 8px;
-}
-
-        .center-card .energy-bolt {
-    		width: 70px; /* Estava 40 */
-    		height: 38px; /* Estava 28*/
-		}
-
-		.center-card .energy-fill {
-    		width: 60%;
-    		height: 0%;
-    		background: linear-gradient(to top,
-        		rgba(94, 93, 93, 0.95),   /* #5e5d5d */
-        		rgba(180, 180, 180, 0.95) /* leve highlight */
-    		);
-		}
-
-		.center-card .energy-icon {
-    		color: #111;
-    		text-shadow: 0 0 3px rgba(255,255,255,0.6);
-		}
-
-		.center-card .energy-text {
-    		color: #111;
-    		text-shadow: none;
-		}
-		
-		.behind-card {
-            width: 500px;
-            height: 58px;
-
-            display: grid;
-            grid-template-columns: 110px 92px 1fr 68px 42px;
-            align-items: center;
         }
 
         .cell {
@@ -157,197 +74,260 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
-        .position {
+        
+        .position,
+        .interval {
             font-weight: bold;
             font-size: 18px;
-            color: #A7E214;
+            color: var(--nlt-green);
             text-align: center;
         }
         
-		.energy-wrapper {
-    		display: flex;
-		    flex-direction: column;
-    		align-items: center;
-		    justify-content: center;
-		    padding: 0 8px;
-    		color: #d9b23f;
-    		font-weight: bold;
-    		text-align: center;
+        .position {
+ 		   overflow: visible;
+		    text-overflow: unset;
+    		white-space: nowrap;
 		}
 
-		.energy-bolt {
-    		position: relative;
-    		width: 52px;
-    		height: 34px;
-		    display: flex;
-    		align-items: center;
-    		justify-content: center;
-		}
-
-		.energy-fill {
-		    position: absolute;
-    		bottom: 0;
-    		left: 50%;
-    		transform: translateX(-50%);
-		    width: 60%;
-    		height: 0%;
-		    background: linear-gradient(to top,
-        		rgba(167, 226, 20, 0.95),
-        		rgba(217, 178, 63, 0.95)
-    		);
-		    transition: height 0.25s ease;
-    		z-index: 1;
-		}
-
-		.energy-icon {
-    		position: relative;
-    		z-index: 2;
-		    font-size: 28px;
-    		line-height: 1;
-    		color: #111;
-    		text-shadow: 0 0 4px rgba(255, 255, 255, 0.65);
-		}
-
-		.energy-text {
-    		margin-top: 2px;
-    		font-size: 11px;
-		    font-weight: bold;
-		    color: #d9b23f;
-    		text-shadow: 0 0 4px black;
-		}
-		
         .driver {
             font-weight: bold;
         }
 
-        .interval {
-            font-weight: bold;
-            font-size: 18px;
-            color: #A7E214;
-            text-align: center;
-        }
-
         .class {
-            color: #d9b23f;
+            color: var(--nlt-gold);
             font-weight: bold;
             text-align: center;
         }
-        
-		.class-highlight {
-		    display: inline-block;
-		    padding: 8px 8px;
-		    border-radius: 6px;
-		    background: rgba(0, 0, 0, 0.25);
-		    border: 1px solid rgba(217, 178, 63, 0.4);
-		    font-size: 14px;
-		    font-weight: bold;
-		    text-align: center;
-		}
-		
-		.class-highlight-focused {
-		    display: inline-block;
-		    padding: 4px 4px;
-		    border-radius: 6px;
-		    background: rgba(0, 0, 0, 0.7);
-		    border: 1px solid rgba(217, 178, 63, 0.4);
-		    color: #d9b23f;
-		    font-size: 12px;
-		    font-weight: bold;
-		    text-align: center;
-		}
 
-		.hypercar {
-		    background: rgba(189, 0, 64, 0.85);
-    		color: #fff;
-		}
+        .class-highlight {
+            display: inline-block;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(217, 178, 63, 0.4);
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+        }
 
-		.lmp2 {
-    		background: rgba(0, 109, 178, 0.85);
-		    color: #fff;
-		}
-		
-		.lmp3 {
-    		background: rgba(94, 16, 134, 0.85);
-		    color: #fff;
-		}
+        .center-card .class-highlight {
+            justify-self: center;
+            padding: 4px 8px;
+        }
 
-		.gt3 {
-    		background: rgba(40, 190, 58, 0.85);
-    		color: #fff;
-		}
+        .center-driver {
+            max-width: 160px;
+            justify-self: center;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .center-middle-row,
+        .center-bottom-row {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+        }
+
+        .center-logo {
+            max-width: 65px;
+            max-height: 65px;
+            justify-self: center;
+            object-fit: contain;
+        }
+
+        .center-position {
+            justify-self: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .energy-wrapper,
+        .center-energy-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .energy-wrapper {
+            padding: 0 8px;
+            color: var(--nlt-gold);
+        }
+
+        .energy-bolt {
+            position: relative;
+            width: 52px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .center-card .energy-bolt {
+            width: 70px;
+            height: 38px;
+        }
+
+        .energy-fill {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 0%;
+            background: linear-gradient(to top, rgba(167, 226, 20, 0.95), rgba(217, 178, 63, 0.95));
+            transition: height 0.25s ease;
+            z-index: 1;
+        }
+
+        .center-card .energy-fill {
+            background: linear-gradient(to top, rgba(94, 93, 93, 0.95), rgba(180, 180, 180, 0.95));
+        }
+
+        .energy-icon {
+            position: relative;
+            z-index: 2;
+            font-size: 28px;
+            line-height: 1;
+            color: #111;
+            text-shadow: 0 0 4px rgba(255, 255, 255, 0.65);
+        }
+
+        .center-card .energy-icon {
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.6);
+        }
+
+        .energy-text {
+            margin-top: 2px;
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--nlt-gold);
+            text-shadow: 0 0 4px black;
+        }
+
+        .center-card .energy-text {
+            color: #111;
+            text-shadow: none;
+        }
+
+        .hypercar {
+            background: rgba(189, 0, 64, 0.85);
+            color: #fff;
+        }
+
+        .lmp2 {
+            background: rgba(0, 109, 178, 0.85);
+            color: #fff;
+        }
+
+        .lmp3 {
+            background: rgba(94, 16, 134, 0.85);
+            color: #fff;
+        }
+
+        .gt3 {
+            background: rgba(40, 190, 58, 0.85);
+            color: #fff;
+        }
 
         .empty {
             opacity: 0.35;
         }
-        
     </style>
 </head>
 
 <body>
     <div class="relative-widget">
-
-        <div class="relative-card ahead-card" id="aheadCard">
+        <div class="relative-card side-card ahead-card" id="aheadCard">
             <span class="cell position" id="aheadPosition">-</span>
-			<div class="cell energy-wrapper">
-    			<div class="energy-bolt" id="aheadEnergy">
-        			<span class="energy-fill"></span>
-        			<span class="energy-icon">⚡</span>
-    			</div>
-    			<span class="energy-text" id="aheadEnergyText">-</span>
-			</div>
+
+            <div class="cell energy-wrapper">
+                <div class="energy-bolt" id="aheadEnergy">
+                    <span class="energy-fill"></span>
+                    <span class="energy-icon">⚡</span>
+                </div>
+                <span class="energy-text" id="aheadEnergyText">-</span>
+            </div>
+
             <span class="cell driver" id="aheadDriver">-</span>
             <span class="cell interval" id="aheadInterval">-</span>
+
             <span class="cell class">
-			    <span class="class-highlight" id="aheadClass">-</span>
-			</span>
+                <span class="class-highlight" id="aheadClass">-</span>
+            </span>
         </div>
 
-<div class="relative-card center-card" id="focusedCard">
-    <div class="center-driver" id="focusedDriver">-</div>
+        <div class="relative-card center-card" id="focusedCard">
+            <div class="center-driver" id="focusedDriver">-</div>
 
-    <div class="center-middle-row">
-        <img src="/images/logo-nlt-racing.png" class="center-logo">
+            <div class="center-middle-row">
+                <img src="/images/logo-nlt-racing.png" class="center-logo" alt="NLT Racing">
 
-        <div class="center-energy-wrapper">
-            <div class="energy-bolt" id="focusedEnergy">
-                <span class="energy-fill"></span>
-                <span class="energy-icon">⚡</span>
+                <div class="center-energy-wrapper">
+                    <div class="energy-bolt" id="focusedEnergy">
+                        <span class="energy-fill"></span>
+                        <span class="energy-icon">⚡</span>
+                    </div>
+                    <span class="energy-text" id="focusedEnergyText">-</span>
+                </div>
             </div>
-            <span class="energy-text" id="focusedEnergyText">-</span>
-        </div>
-    </div>
 
-    <div class="center-bottom-row">
-        <div class="center-position">
-            P<span id="focusedPosition">-</span>
+            <div class="center-bottom-row">
+                <div class="center-position">P<span id="focusedPosition">-</span></div>
+                <div class="class-highlight" id="focusedClass">-</div>
+            </div>
         </div>
 
-        <div class="class-highlight" id="focusedClass">-</div>
-    </div>
-</div>
-		
-        <div class="relative-card behind-card" id="behindCard">
+        <div class="relative-card side-card behind-card" id="behindCard">
             <span class="cell class">
-			    <span class="class-highlight" id="behindClass">-</span>
-			</span>
+                <span class="class-highlight" id="behindClass">-</span>
+            </span>
+
             <span class="cell interval" id="behindInterval">-</span>
             <span class="cell driver" id="behindDriver">-</span>
-			<div class="cell energy-wrapper">
-    			<div class="energy-bolt" id="behindEnergy">
-        			<span class="energy-fill"></span>
-        			<span class="energy-icon">⚡</span>
-    			</div>
-    			<span class="energy-text" id="behindEnergyText">-</span>
-			</div>
+
+            <div class="cell energy-wrapper">
+                <div class="energy-bolt" id="behindEnergy">
+                    <span class="energy-fill"></span>
+                    <span class="energy-icon">⚡</span>
+                </div>
+                <span class="energy-text" id="behindEnergyText">-</span>
+            </div>
+
             <span class="cell position" id="behindPosition">-</span>
         </div>
     </div>
 
     <script>
+        const RELATIVE_ENDPOINT = '/overlay/broadcast/relative';
+        const UPDATE_INTERVAL_MS = 250; // 250ms = 4 FPS
+        const CLASS_STYLE_NAMES = ['hypercar', 'lmp2', 'lmp3', 'gt3'];
+
+        const sideFields = {
+            ahead: getSideElements('ahead'),
+            behind: getSideElements('behind')
+        };
+
+        const focusedFields = {
+            card: document.getElementById('focusedCard'),
+            driver: document.getElementById('focusedDriver'),
+            position: document.getElementById('focusedPosition'),
+            energy: document.getElementById('focusedEnergy'),
+            energyText: document.getElementById('focusedEnergyText'),
+            carClass: document.getElementById('focusedClass')
+        };
+
         async function loadRelative() {
             try {
-                const response = await fetch('/overlay/broadcast/relative');
+                const response = await fetch(RELATIVE_ENDPOINT);
 
                 if (!response.ok) {
                     throw new Error('Erro ao buscar relative');
@@ -355,19 +335,86 @@
 
                 const data = await response.json();
 
-                updateSideCar('ahead', data.ahead);
+                updateSideCar(sideFields.ahead, data.ahead);
                 updateFocusedCar(data.focused);
-                updateSideCar('behind', data.behind);
-
+                updateSideCar(sideFields.behind, data.behind);
             } catch (error) {
                 console.error('Falha ao atualizar relative:', error);
             }
         }
-        
-        function applyClassStyle(element, className) {
-            element.classList.remove('hypercar', 'lmp2', 'lmp2_elms', 'lmp3', 'gt3');
 
-            if (!className || className === '-' || className.trim() === '' || className.toLowerCase() === 'unknown') {
+        function getSideElements(prefix) {
+            return {
+                card: document.getElementById(prefix + 'Card'),
+                position: document.getElementById(prefix + 'Position'),
+                energy: document.getElementById(prefix + 'Energy'),
+                energyText: document.getElementById(prefix + 'EnergyText'),
+                driver: document.getElementById(prefix + 'Driver'),
+                interval: document.getElementById(prefix + 'Interval'),
+                carClass: document.getElementById(prefix + 'Class')
+            };
+        }
+
+        function updateSideCar(elements, car) {
+            if (!car) {
+                elements.card.classList.add('empty');
+                setText(elements.position, '-');
+                updateEnergy(elements, null);
+                setText(elements.driver, '-');
+                setText(elements.interval, '-');
+                updateClass(elements.carClass, '-');
+                return;
+            }
+
+            elements.card.classList.remove('empty');
+            setText(elements.position, formatPosition(car.position));
+            updateEnergy(elements, car.virtualEnergyPercent);
+            setText(elements.driver, car.driverName ?? '-');
+            setText(elements.interval, car.interval ?? '-');
+            updateClass(elements.carClass, car.carClass ?? '-');
+        }
+
+        function updateFocusedCar(car) {
+            if (!car) {
+                setText(focusedFields.driver, '-');
+                setText(focusedFields.position, '-');
+                updateEnergy(focusedFields, null);
+                updateClass(focusedFields.carClass, '-');
+                return;
+            }
+
+            setText(focusedFields.driver, car.driverName ?? '-');
+            setText(focusedFields.position, car.position ?? '-');
+            updateEnergy(focusedFields, car.virtualEnergyPercent);
+            updateClass(focusedFields.carClass, car.carClass ?? '-');
+        }
+
+        function updateEnergy(elements, value) {
+            const fillElement = elements.energy.querySelector('.energy-fill');
+
+            if (value === null || value === undefined || isNaN(Number(value))) {
+                fillElement.style.height = '0%';
+                setText(elements.energyText, '-');
+                return;
+            }
+
+            const percent = clamp(Number(value), 0, 100);
+
+            fillElement.style.height = percent + '%';
+            setText(elements.energyText, percent.toFixed(0) + '%');
+        }
+
+        function updateClass(element, className) {
+            const value = normalizeEmptyValue(className);
+
+            setText(element, value);
+            applyClassStyle(element, value);
+        }
+
+        function applyClassStyle(element, className) {
+            element.classList.remove(...CLASS_STYLE_NAMES);
+
+            if (isEmptyClass(className)) {
                 return;
             }
 
@@ -375,7 +422,7 @@
 
             if (normalized.includes('hyper')) {
                 element.classList.add('hypercar');
-            } else if ((normalized.includes('lmp2') || normalized.includes('lmp2_elms'))) {
+            } else if (normalized.includes('lmp2') || normalized.includes('lmp2_elms')) {
                 element.classList.add('lmp2');
             } else if (normalized.includes('lmp3')) {
                 element.classList.add('lmp3');
@@ -384,73 +431,28 @@
             }
         }
 
-        function updateSideCar(prefix, car) {
-            const card = document.getElementById(prefix + 'Card');
-
-            if (!car) {
-                card.classList.add('empty');
-
-                document.getElementById(prefix + 'Position').textContent = '-';
-                updateEnergy(prefix + 'Energy', null);
-                document.getElementById(prefix + 'Driver').textContent = '-';
-                document.getElementById(prefix + 'Interval').textContent = '-';
-                document.getElementById(prefix + 'Class').textContent = '-';
-                applyClassStyle(document.getElementById(prefix + 'Class'), '-');
-                return;
-            }
-
-            card.classList.remove('empty');
-
-            document.getElementById(prefix + 'Position').textContent = 'P' + car.position;
-            updateEnergy(prefix + 'Energy', car.virtualEnergyPercent);
-            document.getElementById(prefix + 'Driver').textContent = car.driverName ?? '-';
-            document.getElementById(prefix + 'Interval').textContent = car.interval ?? '-';
-
-            const classElement = document.getElementById(prefix + 'Class');
-            const classValue = car.carClass ?? '-';
-
-            classElement.textContent = classValue;
-            applyClassStyle(classElement, classValue);
+        function formatPosition(position) {
+            return position ? 'P' + position : '-';
         }
 
-        function updateFocusedCar(car) {
-            if (!car) {
-                document.getElementById('focusedDriver').textContent = '-';
-                document.getElementById('focusedPosition').textContent = '-';
-                updateEnergy('focusedEnergy', null);
-                document.getElementById('focusedClass').textContent = '-';
-                return;
-            }
-
-            document.getElementById('focusedDriver').textContent = car.driverName ?? '-';
-            document.getElementById('focusedPosition').textContent = car.position ?? '-';
-            updateEnergy('focusedEnergy', car.virtualEnergyPercent);
-            const focusedClassEl = document.getElementById('focusedClass');
-            const classValue = car.carClass ?? '-';
-
-            focusedClassEl.textContent = classValue;
-            applyClassStyle(focusedClassEl, classValue);
+        function normalizeEmptyValue(value) {
+            return value ?? '-';
         }
 
-        function updateEnergy(elementId, value) {
-            const energyElement = document.getElementById(elementId);
-            const fillElement = energyElement.querySelector('.energy-fill');
-            const textElement = document.getElementById(elementId + 'Text');
+        function isEmptyClass(className) {
+            return !className || className === '-' || className.trim() === '' || className.toLowerCase() === 'unknown';
+        }
 
-            if (value === null || value === undefined || isNaN(Number(value))) {
-                fillElement.style.height = '0%';
-                textElement.textContent = '-';
-                return;
-            }
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
 
-            const percent = Math.max(0, Math.min(100, Number(value)));
-
-            fillElement.style.height = percent + '%';
-            textElement.textContent = percent.toFixed(0) + '%';
+        function setText(element, value) {
+            element.textContent = value;
         }
 
         loadRelative();
-        setInterval(loadRelative, 250); /* 1s = 1000  250 = 4 FPS */
+        setInterval(loadRelative, UPDATE_INTERVAL_MS);
     </script>
 </body>
 </html>

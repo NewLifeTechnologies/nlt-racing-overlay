@@ -16,7 +16,7 @@ public class BroadcastOverlayController {
         this.lmuApiService = lmuApiService;
     }
 
-    @GetMapping(value = "/overlay/broadcast/selected-car", produces = "application/json;charset=UTF-8")
+    @GetMapping(value = "/overlay/broadcast/selected-car")
     public OverlayDTO getSelectedCarOverlay() {
         return lmuApiService.getBroadcastSelectedCarOverlay();
     }
