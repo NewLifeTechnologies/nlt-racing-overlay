@@ -16,11 +16,35 @@
     box-sizing: border-box;
 }
 
+html,
 body {
     margin: 0;
+ 	padding: 0;
     background: transparent;
     font-family: Arial, Helvetica, sans-serif;
+    overflow: hidden;
     color: white;
+}
+
+.car-number {
+	color: #cccccc;
+    text-align: center;
+    min-width: 44px;
+}
+
+.class-highlight {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(217, 178, 63, 0.4);
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.columns {
+	gap: 8px;
 }
 
 .nlt-card {
@@ -58,6 +82,10 @@ body {
     height: 32px;
 }
 
+.row {
+	gap:8px;
+}
+
 .value.good,
 .good {
     color: var(--nlt-green);
@@ -73,19 +101,8 @@ body {
     color: #ff4d4d;
 }
 
-.class-highlight {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(217, 178, 63, 0.4);
-    font-size: 14px;
-    font-weight: bold;
-    text-align: center;
-}
-
 .hypercar {
-    background: rgba(189, 0, 64, 0.85);
+    background: rgba(240, 0, 30, 0.85);
     color: #fff;
 }
 
@@ -100,6 +117,6 @@ body {
 }
 
 .gt3 {
-    background: rgba(40, 190, 58, 0.85);
+    background: rgba(40, 170, 58, 0.85);
     color: #fff;
 }

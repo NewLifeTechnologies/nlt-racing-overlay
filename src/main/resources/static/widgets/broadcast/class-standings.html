@@ -8,7 +8,6 @@
 
     <style>
 		.widget {
-		    width: 620px;
 		    background: rgba(0, 0, 0, 0.75);
 		    border: 2px solid #d9b23f;
 		    border-radius: 10px;
@@ -92,11 +91,6 @@
             color: #d9b23f;
         }
 
-        .number {
-            font-size: 15px;
-            color: #cccccc;
-        }
-
         .driver {
             font-size: 15px;
             font-weight: bold;
@@ -133,7 +127,6 @@
 
 <div class="widget nlt-card">
     <div class="header nlt-header">
-        <div class="title">Class Standings</div>
         <div class="header nlt-header">
     		<img src="/images/logo-nlt-racing.png" class="logo nlt-logo">
 		</div>
@@ -144,7 +137,7 @@
     
     <div class="columns">
 		<div class="col pos col-pos">P</div>
-		<div class="col number col-number">#</div>
+		<div class="col number col-number"></div>
 		<div class="col driver">DRIVER</div>
 		<div class="col gap">GAP</div>
     	<div class="col lap">LAST</div>
@@ -239,6 +232,7 @@
 
         standings.forEach(car => {
             const row = document.createElement('div');
+            
             row.className = 'row';
 
             if (car.player) {
@@ -251,7 +245,9 @@
 
             row.innerHTML = `
                 <div class="pos">P${car.classPosition}</div>
-                <div class="number">#${formatValue(car.carNumber)}</div>
+                <div class="class-highlight car-number" data-class="${car.carClass}">
+                	${formatValue(car.carNumber)}
+            	</div>
                 <div class="driver">${formatValue(car.driverName)}</div>
                 <div class="gap">${formatGap(car)}</div>
                 <div class="lap">${formatValue(car.lastLapTime)}</div>
@@ -259,7 +255,8 @@
                 	${formatValue(car.bestLapTime)}
             	</div>
             `;
-
+            const numberElement = row.querySelector('.car-number');
+			applyClassStyle(numberElement, car.carClass);
             rowsElement.appendChild(row);
         });
     }
