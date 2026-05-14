@@ -39,4 +39,11 @@ public class BroadcastWidgetsController {
 
         return standingService.buildBroadcastClassStandings(carClass);
     }
+    
+    @GetMapping("interval-neighbors")
+    public BroadcastRelativeDTO getBroadcastIntervalNeighbors(
+            @RequestParam(required = false) String carClass) {
+
+        return standingService.buildBroadcastIntervalNeighbors(carClass);
+    }
 }
