@@ -23,8 +23,29 @@ public class OverlayFormatter {
         if (seconds <= 0) {
             return "-";
         }
-        
+
         String signal = ahead ? "-" : "+";
         return String.format(Locale.US, "%s%.3f", signal, seconds);
+    }
+
+    public String formatPilotInterval(double seconds, boolean ahead) {
+
+        if (seconds <= 0) {
+            return "-";
+        }
+
+        String signal = ahead ? "-" : "+";
+        return String.format(Locale.US, "%s%.3f", signal, seconds);
+    }
+
+    // Positive = neighbor slower (good for pilot). Negative = neighbor faster (bad for pilot).
+    public String formatPaceGap(double playerLastLap, double neighborLastLap) {
+
+        if (playerLastLap <= 0 || neighborLastLap <= 0) {
+            return "-";
+        }
+
+        double gap = neighborLastLap - playerLastLap;
+        return String.format(Locale.US, "%+.1fs", gap);
     }
 }

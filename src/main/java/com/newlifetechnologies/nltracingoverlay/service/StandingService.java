@@ -13,6 +13,8 @@ import com.newlifetechnologies.nltracingoverlay.dto.BroadcastClassStandingsDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.BroadcastRelativeDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.CarDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.ClassStandingDTO;
+import com.newlifetechnologies.nltracingoverlay.dto.PilotRelativeCarDTO;
+import com.newlifetechnologies.nltracingoverlay.dto.PilotRelativeDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.RelativeCarDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.StandingDTO;
 import com.newlifetechnologies.nltracingoverlay.formatter.OverlayFormatter;
@@ -309,5 +311,111 @@ public class StandingService {
         }
 
         return classPositionByCarId.getOrDefault(car.getCarId(), 0);
+    }
+
+    public PilotRelativeDTO buildPilotRelative() {
+
+        List<StandingDTO> standings = lmuApiService.getStandings();
+
+        if (standings == null || standings.isEmpty()) {
+            return new PilotRelativeDTO();
+        }
+
+        StandingDTO playerCar = standings.stream()
+                .filter(StandingDTO::isPlayer)
+                .findFirst()
+                .orElse(null);
+
+        if (playerCar == null) {
+            return new PilotRelativeDTO();
+        }
+
+        String playerClass = playerCar.getCarClass();
+        List<StandingDTO> classCars = filterAndSortByClass(standings, playerClass);
+
+        int playerIndex = -1;
+        for (int i = 0; i < classCars.size(); i++) {
+            if (classCars.get(i).isPlayer()) {
+                playerIndex = i;
+                break;
+            }
+        }
+
+        if (playerIndex < 0) {
+            return new PilotRelativeDTO();
+        }
+
+        List<ClassStandingDTO> classRows = buildClassStandingRows(playerClass, classCars);
+
+        Map<String, Integer> classPositionByCarId = classRows.stream()
+                .collect(Collectors.toMap(ClassStandingDTO::getCarId, ClassStandingDTO::getClassPosition));
+
+        StandingDTO aheadStanding = playerIndex > 0 ? classCars.get(playerIndex - 1) : null;
+        StandingDTO behindStanding = playerIndex < classCars.size() - 1 ? classCars.get(playerIndex + 1) : null;
+
+        PilotRelativeDTO dto = new PilotRelativeDTO();
+
+        dto.setAhead(toPilotRelativeCarDTO(aheadStanding, playerCar, true,
+                getClassPosition(classPositionByCarId, aheadStanding),
+                playerCar.getTimeBehindNext()));
+
+        dto.setBehind(toPilotRelativeCarDTO(behindStanding, playerCar, false,
+                getClassPosition(classPositionByCarId, behindStanding),
+                behindStanding != null ? behindStanding.getTimeBehindNext() : 0));
+
+        return dto;
+    }
+
+    private PilotRelativeCarDTO toPilotRelativeCarDTO(StandingDTO standing, StandingDTO player,
+            boolean isAhead, int classPosition, double intervalSeconds) {
+
+        if (standing == null) {
+            return null;
+        }
+
+        PilotRelativeCarDTO dto = new PilotRelativeCarDTO();
+
+        dto.setPosition(classPosition);
+        dto.setCarNumber(standing.getCarNumber());
+        dto.setDriverName(standing.getDriverName());
+        dto.setCarClass(standing.getCarClass());
+        dto.setSameClass(standing.getCarClass() != null && standing.getCarClass().equals(player.getCarClass()));
+        dto.setLapContext(buildLapContext(standing, player));
+        dto.setLastLapTime(overlayFormatter.formatTime(standing.getLastLapTime()));
+        dto.setPaceGap(overlayFormatter.formatPaceGap(player.getLastLapTime(), standing.getLastLapTime()));
+        dto.setInterval(overlayFormatter.formatPilotInterval(intervalSeconds, isAhead));
+        dto.setThreatStatus(computeThreatStatus(standing, player, isAhead));
+
+        return dto;
+    }
+
+    private String buildLapContext(StandingDTO neighbor, StandingDTO player) {
+        int diff = neighbor.getLapsCompleted() - player.getLapsCompleted();
+        if (diff == 0) return "mesma volta";
+        // neighbor com mais voltas está à frente → sinal negativo (como no interval)
+        if (diff > 0) return "-" + diff + (diff > 1 ? " voltas" : " volta");
+        int absDiff = Math.abs(diff);
+        return "+" + absDiff + (absDiff > 1 ? " voltas" : " volta");
+    }
+
+    private String computeThreatStatus(StandingDTO neighbor, StandingDTO player, boolean isAhead) {
+        boolean sameClass = neighbor.getCarClass() != null
+                && neighbor.getCarClass().equals(player.getCarClass());
+        boolean sameLap = neighbor.getLapsCompleted() == player.getLapsCompleted();
+
+        if (!sameClass || !sameLap) {
+            return "IGNORAR";
+        }
+
+        if (player.getLastLapTime() <= 0 || neighbor.getLastLapTime() <= 0) {
+            return null;
+        }
+
+        double paceGap = neighbor.getLastLapTime() - player.getLastLapTime();
+
+        if (isAhead && paceGap > 0) return "ALVO";
+        if (!isAhead && paceGap < 0) return "AMEACA";
+
+        return null;
     }
 }
