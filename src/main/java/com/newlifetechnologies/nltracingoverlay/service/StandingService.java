@@ -7,27 +7,42 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.newlifetechnologies.nltracingoverlay.dto.BroadcastClassStandingsDTO;
+import com.newlifetechnologies.nltracingoverlay.dto.ConsistencyDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.BroadcastRelativeDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.CarDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.ClassStandingDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.PilotRelativeCarDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.PilotRelativeDTO;
+import com.newlifetechnologies.nltracingoverlay.dto.PressureBehindDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.RelativeCarDTO;
+import com.newlifetechnologies.nltracingoverlay.dto.PressureAheadDTO;
 import com.newlifetechnologies.nltracingoverlay.dto.StandingDTO;
 import com.newlifetechnologies.nltracingoverlay.formatter.OverlayFormatter;
 
 @Service
 public class StandingService {
-	
+
+	@Value("${nlt.overlay.gap-threshold:1.5}")
+	private double gapThreshold;
+
 	private final LmuApiService lmuApiService;
 	private final OverlayFormatter overlayFormatter;
-    
-    public StandingService(LmuApiService lmuApiService, OverlayFormatter overlayFormatter) {
+	private final GapHistoryService gapHistoryService;
+	private final PressureAheadHistoryService pressureAheadHistoryService;
+	private final LapHistoryService lapHistoryService;
+
+    public StandingService(LmuApiService lmuApiService, OverlayFormatter overlayFormatter,
+            GapHistoryService gapHistoryService, PressureAheadHistoryService pressureAheadHistoryService,
+            LapHistoryService lapHistoryService) {
         this.lmuApiService = lmuApiService;
         this.overlayFormatter = overlayFormatter;
+        this.gapHistoryService = gapHistoryService;
+        this.pressureAheadHistoryService = pressureAheadHistoryService;
+        this.lapHistoryService = lapHistoryService;
     }
 
     public Map<String, List<ClassStandingDTO>> buildClassStandings(List<StandingDTO> standings) {
@@ -417,5 +432,227 @@ public class StandingService {
         if (!isAhead && paceGap < 0) return "AMEACA";
 
         return null;
+    }
+
+    public PressureBehindDTO buildPressureBehind() {
+        List<StandingDTO> standings = lmuApiService.getStandings();
+
+        if (standings == null || standings.isEmpty()) {
+            gapHistoryService.reset();
+            return new PressureBehindDTO();
+        }
+
+        StandingDTO player = standings.stream()
+                .filter(StandingDTO::isPlayer)
+                .findFirst()
+                .orElse(null);
+
+        if (player == null) {
+            gapHistoryService.reset();
+            return new PressureBehindDTO();
+        }
+
+        String playerClass = player.getCarClass();
+
+        List<StandingDTO> eligibleCars = standings.stream()
+                .filter(s -> playerClass.equals(s.getCarClass()))
+                .filter(s -> !s.isPitting())
+                .sorted(Comparator.comparingInt(StandingDTO::getPosition))
+                .toList();
+
+        int playerIndex = -1;
+        for (int i = 0; i < eligibleCars.size(); i++) {
+            if (eligibleCars.get(i).isPlayer()) {
+                playerIndex = i;
+                break;
+            }
+        }
+
+        if (playerIndex < 0 || playerIndex >= eligibleCars.size() - 1) {
+            gapHistoryService.reset();
+            return new PressureBehindDTO();
+        }
+
+        StandingDTO behind = eligibleCars.get(playerIndex + 1);
+        
+        /*
+        if (behind.getLapsCompleted() != player.getLapsCompleted()) {
+            gapHistoryService.reset();
+            return new PressureBehindDTO();
+        }
+        */
+
+        double currentGap = behind.getTimeBehindNext();
+        gapHistoryService.record(behind.getCarId(), behind.getLapsCompleted(), currentGap);
+
+        List<Double> history = gapHistoryService.getHistory();
+
+        if (history.size() < 2) {
+            return new PressureBehindDTO();
+        }
+
+        double totalGain = 0;
+        for (int i = 1; i < history.size(); i++) {
+            totalGain += history.get(i - 1) - history.get(i);
+        }
+        double gainPerLap = totalGain / (history.size() - 1);
+
+        boolean gapOk = gapThreshold <= 0 || currentGap < gapThreshold;
+        if (gainPerLap <= 0 || !gapOk) {
+            return new PressureBehindDTO();
+        }
+
+        int lapsUntilReach = (int) Math.ceil(currentGap / gainPerLap);
+
+        PressureBehindDTO dto = new PressureBehindDTO();
+        dto.setActive(true);
+        dto.setCarNumber(behind.getCarNumber());
+        dto.setDriverName(behind.getDriverName());
+        dto.setGapSeconds(String.format(java.util.Locale.US, "%.3f", currentGap));
+        dto.setGainPerLap(String.format(java.util.Locale.US, "%.1fs/volta", gainPerLap));
+        dto.setLapsUntilReach(lapsUntilReach + (lapsUntilReach == 1 ? " volta" : " voltas"));
+
+        return dto;
+    }
+
+    public PressureAheadDTO buildPressureAhead() {
+
+        List<StandingDTO> standings = lmuApiService.getStandings();
+
+        if (standings == null || standings.isEmpty()) {
+            pressureAheadHistoryService.reset();
+            return new PressureAheadDTO();
+        }
+
+        StandingDTO player = standings.stream()
+                .filter(StandingDTO::isPlayer)
+                .findFirst()
+                .orElse(null);
+
+        if (player == null) {
+            pressureAheadHistoryService.reset();
+            return new PressureAheadDTO();
+        }
+
+        String playerClass = player.getCarClass();
+
+        List<StandingDTO> eligibleCars = standings.stream()
+                .filter(s -> playerClass.equals(s.getCarClass()))
+                .filter(s -> !s.isPitting())
+                .sorted(Comparator.comparingInt(StandingDTO::getPosition))
+                .toList();
+
+        int playerIndex = -1;
+        for (int i = 0; i < eligibleCars.size(); i++) {
+            if (eligibleCars.get(i).isPlayer()) {
+                playerIndex = i;
+                break;
+            }
+        }
+
+        if (playerIndex <= 0) {
+            pressureAheadHistoryService.reset();
+            return new PressureAheadDTO();
+        }
+
+        StandingDTO ahead = eligibleCars.get(playerIndex - 1);
+
+        /*
+        if (ahead.getLapsCompleted() != player.getLapsCompleted()) {
+            pressureAheadHistoryService.reset();
+            return new PressureAheadDTO();
+        }
+        */
+
+        double currentGap = player.getTimeBehindNext();
+        pressureAheadHistoryService.record(ahead.getCarId(), player.getLapsCompleted(), currentGap);
+
+        List<Double> history = pressureAheadHistoryService.getHistory();
+
+        if (history.size() < 2) {
+            return new PressureAheadDTO();
+        }
+
+        double totalGain = 0;
+        for (int i = 1; i < history.size(); i++) {
+            totalGain += history.get(i - 1) - history.get(i);
+        }
+        double gainPerLap = totalGain / (history.size() - 1);
+
+        boolean gapOk = gapThreshold <= 0 || currentGap < gapThreshold;
+        if (gainPerLap <= 0 || !gapOk) {
+            return new PressureAheadDTO();
+        }
+
+        int lapsUntilAttack = (int) Math.ceil(currentGap / gainPerLap);
+
+        List<ClassStandingDTO> classRows = buildClassStandingRows(playerClass, eligibleCars);
+        Map<String, Integer> classPositionByCarId = classRows.stream()
+                .collect(Collectors.toMap(ClassStandingDTO::getCarId, ClassStandingDTO::getClassPosition));
+
+        PressureAheadDTO dto = new PressureAheadDTO();
+        dto.setActive(true);
+        dto.setPosition(getClassPosition(classPositionByCarId, ahead));
+        dto.setCarNumber(ahead.getCarNumber());
+        dto.setDriverName(ahead.getDriverName());
+        dto.setGapSeconds(String.format(java.util.Locale.US, "%.3f", currentGap));
+        dto.setGainPerLap(String.format(java.util.Locale.US, "%.1fs/volta", gainPerLap));
+        dto.setLapsUntilAttack(lapsUntilAttack + (lapsUntilAttack == 1 ? " volta" : " voltas"));
+
+        return dto;
+    }
+
+    public ConsistencyDTO buildConsistency() {
+
+        List<StandingDTO> standings = lmuApiService.getStandings();
+
+        if (standings == null || standings.isEmpty()) {
+            lapHistoryService.reset();
+            return new ConsistencyDTO();
+        }
+
+        StandingDTO player = standings.stream()
+                .filter(StandingDTO::isPlayer)
+                .findFirst()
+                .orElse(null);
+
+        if (player == null) {
+            lapHistoryService.reset();
+            return new ConsistencyDTO();
+        }
+
+        lapHistoryService.record(player.getLapsCompleted(), player.getLastLapTime());
+
+        List<Double> history = lapHistoryService.getHistory();
+
+        if (history.size() < 2) {
+            return new ConsistencyDTO();
+        }
+
+        double mean = history.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+        double variance = history.stream().mapToDouble(t -> Math.pow(t - mean, 2)).average().orElse(0);
+        double stdDev = Math.sqrt(variance);
+        double relativeVariation = (stdDev / mean) * 100;
+
+        double bestRecent = history.stream().mapToDouble(Double::doubleValue).min().orElse(0);
+
+        String status;
+        if (relativeVariation <= 0.25) {
+            status = "ESTAVEL";
+        } else if (relativeVariation <= 0.60) {
+            status = "ATENCAO";
+        } else {
+            status = "INSTAVEL";
+        }
+
+        ConsistencyDTO dto = new ConsistencyDTO();
+        dto.setActive(true);
+        dto.setLapCount(history.size());
+        dto.setAverageLap(overlayFormatter.formatTime(mean));
+        dto.setBestRecentLap(overlayFormatter.formatTime(bestRecent));
+        dto.setVariation(String.format(java.util.Locale.US, "+/-%.3fs", stdDev));
+        dto.setStatus(status);
+
+        return dto;
     }
 }

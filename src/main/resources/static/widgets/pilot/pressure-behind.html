@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/nlt-overlay.css">
+
+    <title>NLT Pressure Behind</title>
+
+    <style>
+        .pressure-widget {
+            width: 320px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .pressure-widget.active {
+            opacity: 1;
+        }
+
+        .pressure-header {
+            background: #d94b3f;
+            color: #fff;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            animation: pulse-header 1.2s ease-in-out infinite;
+        }
+
+        .pressure-body {
+            background: var(--overlay-card-bg);
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .pressure-car-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pressure-car-number {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--nlt-gold);
+            min-width: 44px;
+        }
+
+        .pressure-driver {
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pressure-gap {
+            font-size: 22px;
+            font-weight: bold;
+            color: #e05a5a;
+            padding: 4px 0 2px;
+        }
+
+        .pressure-detail {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .pressure-eta {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--nlt-gold);
+            margin-top: 2px;
+        }
+
+        @keyframes pulse-header {
+            0%, 100% { background: #d94b3f; }
+            50%       { background: #a82e24; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pressure-widget nlt-card-soft" id="pressureWidget">
+        <div class="pressure-header">
+            ▼ PRESSÃO ATRÁS
+        </div>
+        <div class="pressure-body">
+            <div class="pressure-car-line">
+                <span class="pressure-car-number" id="carNumber">-</span>
+                <span class="pressure-driver" id="driverName">-</span>
+            </div>
+            <div class="pressure-gap" id="gapSeconds">-</div>
+            <div class="pressure-detail" id="gainPerLap">-</div>
+            <div class="pressure-eta" id="lapsUntilReach">-</div>
+        </div>
+    </div>
+
+    <script>
+        const ENDPOINT = '/widgets/pilot/pressure-behind';
+        const UPDATE_INTERVAL_MS = 500;
+
+        const widget  = document.getElementById('pressureWidget');
+        const carNum  = document.getElementById('carNumber');
+        const driver  = document.getElementById('driverName');
+        const gap     = document.getElementById('gapSeconds');
+        const gain    = document.getElementById('gainPerLap');
+        const eta     = document.getElementById('lapsUntilReach');
+
+        async function loadPressure() {
+            try {
+                const response = await fetch(ENDPOINT);
+                if (!response.ok) throw new Error('Falha ao buscar pressure-behind');
+                const data = await response.json();
+
+                if (data.active) {
+                    widget.classList.add('active');
+                    carNum.textContent = data.carNumber ? '#' + data.carNumber : '-';
+                    driver.textContent = data.driverName ?? '-';
+                    gap.textContent    = data.gapSeconds ? data.gapSeconds + 's' : '-';
+                    gain.textContent   = data.gainPerLap ? 'Vem tirando ' + data.gainPerLap : '-';
+                    eta.textContent    = data.lapsUntilReach ? 'Defender em ' + data.lapsUntilReach : '-';
+                } else {
+                    widget.classList.remove('active');
+                }
+            } catch (error) {
+                console.error('Erro pressure-behind:', error);
+            }
+        }
+
+        loadPressure();
+        setInterval(loadPressure, UPDATE_INTERVAL_MS);
+    </script>
+</body>
+</html>

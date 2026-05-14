@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/nlt-overlay.css">
+
+    <title>NLT Pressure Ahead</title>
+
+    <style>
+        .target-widget {
+            width: 320px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .target-widget.active {
+            opacity: 1;
+        }
+
+        .target-header {
+            background: #3a7d12;
+            color: #fff;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            animation: pulse-header 1.2s ease-in-out infinite;
+        }
+
+        .target-body {
+            background: var(--overlay-card-bg);
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .target-car-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .target-position {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--nlt-green);
+            min-width: 36px;
+        }
+
+        .target-car-number {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--nlt-gold);
+            min-width: 44px;
+        }
+
+        .target-driver {
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .target-gap {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--nlt-green);
+            padding: 4px 0 2px;
+        }
+
+        .target-detail {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .target-eta {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--nlt-gold);
+            margin-top: 2px;
+        }
+
+        @keyframes pulse-header {
+            0%, 100% { background: #3a7d12; }
+            50%       { background: #2a5c0d; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="target-widget nlt-card-soft" id="targetWidget">
+        <div class="target-header">
+            ▲ ALVO À FRENTE
+        </div>
+        <div class="target-body">
+            <div class="target-car-line">
+                <span class="target-position" id="position">-</span>
+                <span class="target-car-number" id="carNumber">-</span>
+                <span class="target-driver" id="driverName">-</span>
+            </div>
+            <div class="target-gap" id="gapSeconds">-</div>
+            <div class="target-detail" id="gainPerLap">-</div>
+            <div class="target-eta" id="lapsUntilAttack">-</div>
+        </div>
+    </div>
+
+    <script>
+        const ENDPOINT = '/widgets/pilot/pressure-ahead';
+        const UPDATE_INTERVAL_MS = 500;
+
+        const widget   = document.getElementById('targetWidget');
+        const pos      = document.getElementById('position');
+        const carNum   = document.getElementById('carNumber');
+        const driver   = document.getElementById('driverName');
+        const gap      = document.getElementById('gapSeconds');
+        const gain     = document.getElementById('gainPerLap');
+        const eta      = document.getElementById('lapsUntilAttack');
+
+        async function loadTarget() {
+            try {
+                const response = await fetch(ENDPOINT);
+                if (!response.ok) throw new Error('Falha ao buscar target-ahead');
+                const data = await response.json();
+
+                if (data.active) {
+                    widget.classList.add('active');
+                    pos.textContent    = data.position ? 'P' + data.position : '-';
+                    carNum.textContent = data.carNumber ? '#' + data.carNumber : '-';
+                    driver.textContent = data.driverName ?? '-';
+                    gap.textContent    = data.gapSeconds ? data.gapSeconds + 's' : '-';
+                    gain.textContent   = data.gainPerLap ? 'Ganhando ' + data.gainPerLap : '-';
+                    eta.textContent    = data.lapsUntilAttack ? 'Possível ataque em ' + data.lapsUntilAttack : '-';
+                } else {
+                    widget.classList.remove('active');
+                }
+            } catch (error) {
+                console.error('Erro pressure-ahead:', error);
+            }
+        }
+
+        loadTarget();
+        setInterval(loadTarget, UPDATE_INTERVAL_MS);
+    </script>
+</body>
+</html>

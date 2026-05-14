@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/nlt-overlay.css">
+
+    <title>NLT Consistency</title>
+
+    <style>
+        .consistency-widget {
+            width: 280px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .consistency-widget.active {
+            opacity: 1;
+        }
+
+        .consistency-header {
+            background: var(--nlt-gold);
+            color: #111;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .consistency-lap-count {
+            font-size: 11px;
+            font-weight: normal;
+            opacity: 0.75;
+        }
+
+        .consistency-body {
+            background: var(--overlay-card-bg);
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .consistency-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .consistency-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .consistency-value {
+            font-size: 13px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .consistency-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 2px 0;
+        }
+
+        .consistency-status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 3px 10px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .status-estavel  { background: rgba(167, 226, 20, 0.15); color: var(--nlt-green); border: 1px solid var(--nlt-green); }
+        .status-atencao  { background: rgba(217, 178, 63, 0.15); color: var(--nlt-gold);  border: 1px solid var(--nlt-gold); }
+        .status-instavel { background: rgba(217, 75, 63, 0.15);  color: #e05a5a;          border: 1px solid #e05a5a; }
+    </style>
+</head>
+
+<body>
+    <div class="consistency-widget nlt-card-soft" id="consistencyWidget">
+        <div class="consistency-header">
+            <span>CONSISTÊNCIA</span>
+            <span class="consistency-lap-count" id="lapCount">-</span>
+        </div>
+        <div class="consistency-body">
+            <div class="consistency-row">
+                <span class="consistency-label">Média</span>
+                <span class="consistency-value" id="averageLap">-</span>
+            </div>
+            <div class="consistency-row">
+                <span class="consistency-label">Melhor recente</span>
+                <span class="consistency-value" id="bestRecentLap">-</span>
+            </div>
+            <hr class="consistency-divider">
+            <div class="consistency-row">
+                <span class="consistency-label">Variação</span>
+                <span class="consistency-value" id="variation">-</span>
+            </div>
+            <div class="consistency-status-row">
+                <span class="consistency-label">Status</span>
+                <span class="status-badge" id="statusBadge">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ENDPOINT = '/widgets/pilot/consistency';
+        const UPDATE_INTERVAL_MS = 500;
+
+        const widget     = document.getElementById('consistencyWidget');
+        const lapCount   = document.getElementById('lapCount');
+        const averageLap = document.getElementById('averageLap');
+        const bestRecent = document.getElementById('bestRecentLap');
+        const variation  = document.getElementById('variation');
+        const statusBadge = document.getElementById('statusBadge');
+
+        const STATUS_LABELS = {
+            'ESTAVEL':  'Ritmo estável',
+            'ATENCAO':  'Atenção',
+            'INSTAVEL': 'Ritmo instável'
+        };
+
+        async function loadConsistency() {
+            try {
+                const response = await fetch(ENDPOINT);
+                if (!response.ok) throw new Error('Falha ao buscar consistency');
+                const data = await response.json();
+
+                if (data.active) {
+                    widget.classList.add('active');
+                    lapCount.textContent   = 'últimas ' + data.lapCount + ' voltas';
+                    averageLap.textContent = data.averageLap ?? '-';
+                    bestRecent.textContent = data.bestRecentLap ?? '-';
+                    variation.textContent  = data.variation ?? '-';
+                    updateStatus(statusBadge, data.status);
+                } else {
+                    widget.classList.remove('active');
+                }
+            } catch (error) {
+                console.error('Erro consistency:', error);
+            }
+        }
+
+        function updateStatus(element, status) {
+            element.classList.remove('status-estavel', 'status-atencao', 'status-instavel');
+
+            if (!status) {
+                element.textContent = '-';
+                return;
+            }
+
+            element.textContent = STATUS_LABELS[status] ?? status;
+
+            if (status === 'ESTAVEL')       element.classList.add('status-estavel');
+            else if (status === 'ATENCAO')  element.classList.add('status-atencao');
+            else if (status === 'INSTAVEL') element.classList.add('status-instavel');
+        }
+
+        loadConsistency();
+        setInterval(loadConsistency, UPDATE_INTERVAL_MS);
+    </script>
+</body>
+</html>
